@@ -35,6 +35,18 @@ AFRAME.registerComponent('terrain-model', {
       type: 'number',
       default: 1.5
     },
+    color: {
+      type: 'string',
+      default: '#cccccc'
+    },
+    roughness: {
+      type: 'number',
+      default: 0
+    },
+    shading: {
+      type: 'string',
+      default: 'smooth'
+    },
     // If true, enable wireframe
     debug: { default: false }
   },
@@ -51,6 +63,7 @@ AFRAME.registerComponent('terrain-model', {
   update: function (oldData) {
     var el = this.el;
     var data = this.data;
+    var componentData = this.data;
     var debug = data.debug;
     var surface;
 
@@ -67,22 +80,37 @@ AFRAME.registerComponent('terrain-model', {
     // z-scaling factor
     var zPosition = data.zPosition;
 
+
+
     // The terrainLoader loads the DEM file and defines a function to be called when the file is successfully downloaded.
     terrainLoader.load(terrainURL, function (data) {
+
       // Adjust each vertex in the plane to correspond to the height value in the DEM file.
       for (var i = 0, l = geometry.vertices.length; i < l; i++) {
         geometry.vertices[i].z = data[i] / 65535 * zPosition;
       }
 
-      // Load texture, apply maximum anisotropy
-      var textureLoader = new THREE.TextureLoader();
-      var texture = textureLoader.load(textureURL);
-      texture.anisotropy = 16;
+      var material;
 
-      // Create material
-      var material = new THREE.MeshLambertMaterial({
-        map: texture
-      });
+      if(textureURL){
+        // Load texture, apply maximum anisotropy
+        var textureLoader = new THREE.TextureLoader();
+        var texture = textureLoader.load(textureURL);
+        texture.anisotropy = 16;
+
+        // Create material
+
+        material = new THREE.MeshLambertMaterial({
+          map: texture
+        });
+      }else{
+        //if texture url not specified use color instead
+        material = new THREE.MeshStandardMaterial({
+          color: componentData.color,
+          roughness: componentData.roughness,
+          shading: (componentData.shading === 'flat') ? THREE.FlatShading : THREE.SmoothShading
+        })
+      }
 
       // Create the surface mesh and register it under entity's object3DMap
       surface = new THREE.Mesh(geometry, material);
