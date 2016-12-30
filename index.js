@@ -45,6 +45,7 @@ AFRAME.registerComponent('terrain-model', {
     },
     shading: {
       type: 'string',
+      oneOf: ['flat', 'smooth'],
       default: 'smooth'
     },
     // If true, enable wireframe
